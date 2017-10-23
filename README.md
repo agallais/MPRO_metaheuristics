@@ -4,4 +4,4 @@ This project is the final assignment of the Metaheuristics course of the MPRO (M
 
 Idea of the first heuristic :
 
-Looking in the non-covered vertices. Pick one at random. Place a captor, then try to link the captor to the origin of the graph
+Looking in the non-covered vertices. Pick one at random. Place a captor, then try to link the captor to the origin of the graph. Stop when all vertices are covered
