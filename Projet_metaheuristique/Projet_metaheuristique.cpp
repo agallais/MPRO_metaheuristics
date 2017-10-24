@@ -16,37 +16,44 @@ int rand_a_b(int a, int b) {
 
 
 int main()
-{
-	std::cout << "Hello World ! " << std::endl;
-	int n;
-	std::cout << "Enter number of lines" << endl;
-
+{	int n;
+	std::cout << "Enter grid size" << endl;
 	std::cin >> n;
-	int m;
-	cout << "Enter number od columns" << endl;
-	cin >> m;
+	int r_captation;
+	cout << "Enter r_captation" << endl;
+	cin >> r_captation;
+	int r_communication;
+	cout << "Enter r_communication" << endl;
+	cin >> r_communication;
 
+	//INstantiation of a virgin grid
+	Grille nouvelleGrille = Grille(n, r_captation, r_communication);
 	
-	Grille nouvelleGrille = Grille(n, m);
-	
+	//initialization of the rand function
 	srand(time(NULL));
-	while (nouvelleGrille.notCovered()) {
-		cout << "entrée dans la boucle"<<endl;
-		
-		int i = rand_a_b(0, nouvelleGrille.number_of_lines);
-		int j = rand_a_b(0, nouvelleGrille.number_of_columns);
 
-		if (nouvelleGrille.isCovered(i,j)) {
-			break;
-		}
-		nouvelleGrille.addSensor(i, j);
-		nouvelleGrille.connect(i, j);
+	
+
+	while (nouvelleGrille.notCovered()) {
+	
+		int i = rand_a_b(0, nouvelleGrille.grid_size);
+		int j = rand_a_b(0, nouvelleGrille.grid_size);
+
+		
+
+		if (nouvelleGrille.availableForSensor(i,j)) {
+
+			cout << i << " " << j << endl;
 			
+			if (nouvelleGrille.connect(i, j)) { nouvelleGrille.addSensor(i, j); 
+			nouvelleGrille.printGrid();
+			}
+
+		}			
 	}
 
 
 
-	cout << "Instantiation réussie" << endl;
 	int ok;
 	cin >> ok;
 	return 0;
