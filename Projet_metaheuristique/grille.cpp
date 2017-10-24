@@ -2,6 +2,7 @@
 #include<iostream>
 #include<cmath>
 #include <vector>
+#include <time.h>
 
 //We need to do something clear about what the numbers in the map field mean
 
@@ -94,8 +95,12 @@ void Grille::addSensor(int i, int j)
 
 	else
 	{
-		double probability_of_being_selected = ((double)neighbors.size()) / (this->nbDeVoisinsMax(i,j));
-		if (rand() < probability_of_being_selected) {
+
+		srand(time(NULL));
+		double probability_of_being_selected = ((double) neighbors.size()) / (this->nbDeVoisinsMax(i,j));
+		double tirage = (double)rand() / RAND_MAX;
+		if (tirage < probability_of_being_selected) {
+
 			vector<pair<int, int>>::iterator neighborsIterator;
 			for (neighborsIterator = neighbors.begin(); neighborsIterator != neighbors.end(); neighborsIterator++) {
 				this->map[neighborsIterator->first][neighborsIterator->second] = 1;
@@ -167,9 +172,8 @@ void Grille::printGrid()
 		}
 		cout << endl;
 	}
-	int ok;
-	cin >> ok;
-	int hello;
+	
+
 }
 
 double Grille::nbDeVoisinsMax(int i, int j) {
