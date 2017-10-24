@@ -39,8 +39,6 @@ int main()
 		int i = rand_a_b(0, nouvelleGrille.grid_size);
 		int j = rand_a_b(0, nouvelleGrille.grid_size);
 
-		
-
 		if (nouvelleGrille.availableForSensor(i,j)) {
 
 			cout << i << " " << j << endl;

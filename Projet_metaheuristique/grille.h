@@ -27,7 +27,7 @@ public:
 	bool availableForSensor(int i, int j);
 
 	void printGrid();
-
+	double nbDeVoisinsMax(int i, int j);
 	~Grille();
 };
 
