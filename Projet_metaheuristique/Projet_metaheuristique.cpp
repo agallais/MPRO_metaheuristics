@@ -44,13 +44,13 @@ int main()
 			cout << i << " " << j << endl;
 			
 			if (nouvelleGrille.connect(i, j)) { nouvelleGrille.addSensor(i, j); 
-			nouvelleGrille.printGrid();
+			
 			}
 
 		}			
 	}
 
-
+	nouvelleGrille.printGrid();
 
 	int ok;
 	cin >> ok;
