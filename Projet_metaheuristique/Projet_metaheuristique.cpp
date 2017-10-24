@@ -4,7 +4,7 @@
 #include "stdafx.h"
 #include <iostream>
 #include "grille.h"
-#include <time.h>
+#include <ctime>
 #include <cstdlib>
 
 using namespace std;
