@@ -94,7 +94,7 @@ void Grille::addSensor(int i, int j)
 
 	else
 	{
-		double probability_of_being_selected = ((double)neighbors.size) / (this->nbDeVoisinsMax(i,j));
+		double probability_of_being_selected = ((double)neighbors.size()) / (this->nbDeVoisinsMax(i,j));
 		if (rand() < probability_of_being_selected) {
 			vector<pair<int, int>>::iterator neighborsIterator;
 			for (neighborsIterator = neighbors.begin(); neighborsIterator != neighbors.end(); neighborsIterator++) {
@@ -169,6 +169,7 @@ void Grille::printGrid()
 	}
 	int ok;
 	cin >> ok;
+	int hello;
 }
 
 double Grille::nbDeVoisinsMax(int i, int j) {
