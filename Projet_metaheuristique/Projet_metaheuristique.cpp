@@ -36,6 +36,7 @@ int main()
 
 	for (int i = 0; i < 5; ++i) {
 		Grille nouvelleGrille = Grille(n, r_captation, r_communication);
+
 		nouvelleGrille.heuristique2();
 	}
 
