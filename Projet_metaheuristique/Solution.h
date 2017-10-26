@@ -1,17 +1,19 @@
 #pragma once
-#include <vector>
+
 
 class Solution
 {
 public:
+	int** map;
+	int gridSize;
 
 
 
-	Solution(int** map);
+	Solution(int** map2,int n);
 
 	bool improve_solution();
 
-	bool removable(pair<int,int> vertex );
+	bool removable(int i , int j);
 
 
 	~Solution();
