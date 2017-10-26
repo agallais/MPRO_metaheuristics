@@ -8,6 +8,14 @@
 
 using namespace std;
 
+int rand_a_b(int a, int b) {
+	return rand() % (b - a) + a;
+}
+
+int min(int a, int b) {
+	if (a < b) { return a; }
+	else { return b; }
+}
 
 int max(int a, int b) {
 
@@ -23,7 +31,6 @@ Grille::Grille(int n, int r_captation, int r_communication)
 	this->radius_of_captation = r_captation;
 	this->radius_of_communication = r_communication;
 	this->grid_size = n;
-
 	this->non_covered_points = pow(n, 2) - 1;
 	this->map = new int*[this->grid_size];
 
@@ -46,6 +53,8 @@ bool Grille::isConnected(int i, int j)
 
 bool Grille::connect(int i, int j)//Connect returns true if the point we try to add is connected to the well ( 0.0 point) 
 {
+	
+
 	for (int k = max(0, i - this->radius_of_communication); k < this->grid_size && k <= i + this->radius_of_communication; ++k) {
 		for (int l = max(0, j - this->radius_of_communication); l < this->grid_size && l <= j + this->radius_of_communication; ++l) {
 			if ((((k - i) * (k - i)) + ((l - j) *(l - j))) <= (pow(this->radius_of_communication, 2))) {
@@ -75,42 +84,35 @@ bool Grille::notCovered()
 void Grille::addSensor(int i, int j)
 {
 	vector<pair<int, int>> neighbors;
-
-
-
 	for (int k = max(0, i - this->radius_of_captation); k <= i + this->radius_of_captation && k < this->grid_size; ++k) {
 		for (int l = max(j - this->radius_of_captation, 0); l <= j + this->radius_of_captation && l < this->grid_size; ++l) {
-
-
 			if ((((k - i) * (k - i)) + ((l - j) *(l - j))) <= (pow(this->radius_of_captation, 2))) {
-
 				if (this->map[k][l] == 0) { neighbors.push_back(pair<int, int>(k, l)); }
-
 			}
 		}
 	}
-
 
 	if (neighbors.empty()) { return; }
 
 	else
 	{
-
-		srand(time(NULL));
-		double probability_of_being_selected = ((double) neighbors.size()) / (this->nbDeVoisinsMax(i,j));
-		double tirage = (double)rand() / RAND_MAX;
-		if (tirage < probability_of_being_selected) {
-
+		//srand(time(NULL));
+		//double probability_of_being_selected = ((double)neighbors.size()) / (this->nbDeVoisinsMax(i, j));
+		//if (this->non_covered_points < 5) {
+		//	probability_of_being_selected = 1.0;
+		//}
+		
+		//double tirage = (double)rand() / RAND_MAX;
+		//if (tirage < probability_of_being_selected || this->non_covered_points < 0.05*this->grid_size) {
+		if (true){
 			vector<pair<int, int>>::iterator neighborsIterator;
 			for (neighborsIterator = neighbors.begin(); neighborsIterator != neighbors.end(); neighborsIterator++) {
 				this->map[neighborsIterator->first][neighborsIterator->second] = 1;
-
+				this->non_covered_points--;
 			}
 			this->map[i][j] = 3;// 3 indicates that a connected sensor is in this point of the grid
 		}
 	}
-
-
 }
 
 //Must say is the vertex is covered by at least one sensor
@@ -171,8 +173,9 @@ void Grille::printGrid()
 
 		}
 		cout << endl;
+		
 	}
-	
+	cout << "" << endl;
 
 }
 
@@ -188,6 +191,86 @@ double Grille::nbDeVoisinsMax(int i, int j) {
 	return nbDeVoisins;
 }
 
+void Grille::heuristique1()
+{
+	int counter = 0;
+	while (this->notCovered()) {
+		counter++;
+		int i = rand_a_b(0, min(counter, this->grid_size));
+		int j = rand_a_b(0, min(counter, this->grid_size));
+
+		if (this->availableForSensor(i, j)) {
+
+			cout << i << " " << j << endl;
+
+			if (this->connect(i, j)) {
+				this->addSensor(i, j);
+				this->printGrid();
+			}
+
+		}
+	}
+}
+
+void Grille::heuristique2()
+{
+	int ** map_canditate = new int*[this->grid_size];
+	for (int m = 0; m < this->grid_size; ++m) {
+		map_canditate[m] = new int[this->grid_size];
+		for (int u = 0; u < this->grid_size; ++u) {
+			map_canditate[m][u] = 0;
+		}
+	}
+	for (int k = max(0, 0 - this->radius_of_communication); k <= min(this->grid_size-1, 0 + this->radius_of_communication); ++k) {
+		for (int l = max(0, 0 - this->radius_of_communication); l <= min(this->grid_size-1, 0 + this->radius_of_communication); ++l) {
+			if (map_canditate[k][l] == 0 && (pow(k,2)+ pow(l,2) <= pow(this->radius_of_communication,2))) {
+				map_canditate[k][l] = 1;
+			}
+		}
+	}
+	while (this->notCovered()) {
+		vector<pair<int, int>> liste_de_candidats = vector<pair<int, int>>();
+
+		for (int k = 0; k < this->grid_size; ++k) {
+			for (int l = 0; l < this->grid_size; ++l) {
+				if (map_canditate[k][l] == 1) { liste_de_candidats.push_back(pair<int, int>(k, l)); }
+			}
+		}
+		
+		int lenght = liste_de_candidats.size();
+
+		int capteur_selected = rand_a_b(0, lenght);
+		pair<int, int> vertex = liste_de_candidats[capteur_selected];
+		this->addSensor(vertex.first, vertex.second);
+
+		for (int k = max(0, vertex.first - this->radius_of_communication); k <= min(this->grid_size-1, vertex.first + this->radius_of_communication); ++k) {
+			for (int l = max(0, vertex.second - this->radius_of_communication); l <= min(this->grid_size-1, vertex.second + this->radius_of_communication); ++l) {
+				if (map_canditate[k][l] == 0 && (pow(k - vertex.first, 2) + pow(l-vertex.second, 2) <= pow(this->radius_of_communication, 2))) {
+					map_canditate[k][l] = 1;
+				}
+			}
+		}
+		map_canditate[vertex.first][vertex.second] = 2;
+		
+	}
+	//this->printGrid();
+	this->print_objective_function();
+	}
+
+
+void Grille::print_objective_function() {
+
+	int capteur = 0;
+	for (int k = 0; k < this->grid_size; ++k) {
+		for (int l = 0; l < this->grid_size; ++l) {
+			if (this->map[k][l] == 3) {
+				capteur++;
+			}
+		}
+	}
+	this->printGrid();
+	cout << capteur << endl;
+}
 Grille::~Grille()
 {
 }

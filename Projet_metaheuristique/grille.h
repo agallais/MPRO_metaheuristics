@@ -28,6 +28,13 @@ public:
 
 	void printGrid();
 	double nbDeVoisinsMax(int i, int j);
+
+	void heuristique1();
+	
+	void heuristique2();
+
+	void print_objective_function();
+
 	~Grille();
 };
 

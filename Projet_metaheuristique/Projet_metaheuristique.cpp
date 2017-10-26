@@ -9,12 +9,14 @@
 
 using namespace std;
 
+//int rand_a_b(int a, int b) {
+//	return rand() % (b - a) + a;
+//}
 
-int rand_a_b(int a, int b) {
-	return rand() % (b - a) + a;
-}
-
-
+//int min(int a, int b) {
+//	if (a < b) { return a; }
+//	else { return b; }
+//}
 int main()
 {	int n;
 	std::cout << "Enter grid size" << endl;
@@ -26,31 +28,18 @@ int main()
 	cout << "Enter r_communication" << endl;
 	cin >> r_communication;
 
-	//INstantiation of a virgin grid
-	Grille nouvelleGrille = Grille(n, r_captation, r_communication);
+	//Instantiation of a virgin grid
+	
 	
 	//initialization of the rand function
 	srand(time(NULL));
 
-	
-
-	while (nouvelleGrille.notCovered()) {
-	
-		int i = rand_a_b(0, nouvelleGrille.grid_size);
-		int j = rand_a_b(0, nouvelleGrille.grid_size);
-
-		if (nouvelleGrille.availableForSensor(i,j)) {
-
-			cout << i << " " << j << endl;
-			
-			if (nouvelleGrille.connect(i, j)) { nouvelleGrille.addSensor(i, j); 
-			
-			}
-
-		}			
+	for (int i = 0; i < 5; ++i) {
+		Grille nouvelleGrille = Grille(n, r_captation, r_communication);
+		nouvelleGrille.heuristique2();
 	}
 
-	nouvelleGrille.printGrid();
+	
 
 	int ok;
 	cin >> ok;
