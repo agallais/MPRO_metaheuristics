@@ -1,4 +1,9 @@
 #pragma once
+
+#include<vector>
+
+using namespace std;
+
 class Grille
 {
 public :
@@ -14,7 +19,9 @@ public :
 public:
 	Grille(int n, int r_captation, int r_communication); // nb lignes, nb colonnes
 
-	bool isConnected(int i, int j);//Should be able to tell wether this captor is connected to the origin
+	bool isCovered(int i, int j);//Should be able to tell wether this captor is connected to the origin
+
+	bool isConnected(); //Should be able to check whether the grid is connected or not after a sensor is deleted.
 
 	bool connect(int i, int j); //connects a captor to the origin by adding new captors
 
@@ -22,11 +29,12 @@ public:
 
 	void addSensor(int i, int j);
 
-	bool isCovered(int i, int j);
+	bool sensorIsConnected(int i, int j, vector<pair<int, int>> tabuList);
 
 	bool availableForSensor(int i, int j);
 
 	void printGrid();
+
 	double nbDeVoisinsMax(int i, int j);
 
 	void heuristique1();

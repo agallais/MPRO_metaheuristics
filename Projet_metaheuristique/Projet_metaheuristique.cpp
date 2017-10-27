@@ -34,10 +34,33 @@ int main()
 	//initialization of the rand function
 	srand(time(NULL));
 
-	for (int i = 0; i < 5; ++i) {
-		Grille nouvelleGrille = Grille(n, r_captation, r_communication);
+	for (int i = 0; i < 10; ++i) {
+		Grille* nouvelleGrille = new Grille(n, r_captation, r_communication);
 
-		nouvelleGrille.heuristique2();
+		nouvelleGrille->heuristique2();
+
+		nouvelleGrille->printGrid();
+		bool sensorDeleted = false;
+		int k = 0;
+		int l = 0;
+		while(!sensorDeleted)
+		{
+			if (nouvelleGrille->map[k][l] == 3)
+			{
+				nouvelleGrille->map[k][l] = 0;
+				sensorDeleted = true;
+			}
+			l++;
+			if (l == nouvelleGrille->grid_size)
+			{
+				k++;
+				l = 0;
+			}
+			
+		}
+		nouvelleGrille->printGrid();
+		cout << "is connected ? " << nouvelleGrille->isConnected() << "\n"<<endl;
+		delete nouvelleGrille;
 	}
 
 	

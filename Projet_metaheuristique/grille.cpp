@@ -46,9 +46,55 @@ Grille::Grille(int n, int r_captation, int r_communication)
 	this->map[0][0] = 1;
 }
 
-bool Grille::isConnected(int i, int j)
+bool Grille::sensorIsConnected(int i, int j, vector<pair<int,int>> tabuList)
 {
-	return false;
+	bool isConnected = false;
+
+	for (int k = max(0, i - this->radius_of_communication); k < this->grid_size && k <= i + this->radius_of_communication; ++k) {
+		for (int l = max(0, j - this->radius_of_communication); l < this->grid_size && l <= j + this->radius_of_communication; ++l) {
+			if ((((k - i) * (k - i)) + ((l - j) *(l - j))) <= (pow(this->radius_of_communication, 2))) {
+				//If the sensor is connected to a connected sensor, then it is connected to the well.
+				if (this->map[k][l] == 3) {
+					return true;
+				}
+			}
+		}
+	}
+
+	//Else, the function is called recursively on the sensor's neighbors.
+
+	tabuList.push_back(pair<int, int>(i, j));	//To prevent cycles, the function cannot be recursively called on the same sensor (i,j).
+
+	for (int k = max(0, i - this->radius_of_communication); k < this->grid_size && k <= i + this->radius_of_communication; ++k) {
+		for (int l = max(0, j - this->radius_of_communication); l < this->grid_size && l <= j + this->radius_of_communication; ++l) {
+			if ((((k - i) * (k - i)) + ((l - j) *(l - j))) <= (pow(this->radius_of_communication, 2))) {
+				
+				//Checking whether the neighbor is tabu.
+				pair<int, int> neighbor = pair<int, int>(k, l);
+				bool tabu = false;
+				vector<pair<int, int>>::iterator neighborIterator;
+				for (neighborIterator = tabuList.begin(); neighborIterator != tabuList.end(); neighborIterator++)
+				{
+					if (*neighborIterator == neighbor)
+					{
+						tabu = true;
+						break;
+					}
+				}
+				//If the neighbor is non tabu, then the connectivity checking is operated.
+				if (!tabu) {
+					isConnected = this->sensorIsConnected(k, l, tabuList);
+					//If the neighbor is connected to the well, then return true.
+					if (isConnected)
+					{
+						return true;
+					}
+				}
+			}
+		}
+	}
+
+	return false;	//
 }
 
 bool Grille::connect(int i, int j)//Connect returns true if the point we try to add is connected to the well ( 0.0 point) 
@@ -115,6 +161,35 @@ void Grille::addSensor(int i, int j)
 	}
 }
 
+bool Grille::isConnected()
+{
+	////Each time we know a sensor is connected, we set it to 3.
+
+	//Values of all sensors except those within range of the well are set to 2.
+	for (int i = 0; i < this->grid_size; i++) {
+		for (int j = 0; j < this->grid_size; j++) {
+			if (this->map[i][j] == 3 && !((((i - 0) * (j - 0)) + ((i - 0) *(j - 0))) <= (pow(this->radius_of_communication, 2)))) {
+				this->map[i][j] = 2;
+			}
+		}
+	}
+
+	//Looking for unconnected sensors in the grid.
+	for (int i = 0; i < this->grid_size; i++) {
+		for (int j = 0; j < this->grid_size; j++) {
+			if (this->map[i][j] == 2 && this->map[i][j] != 3) //(i,j) is a supposedly unconnected sensor.
+			{
+				vector<pair<int, int>> tabuList = vector<pair<int, int>>();	//Tabu List is instantiated to null at the beginning.
+				if ( !this->sensorIsConnected(i, j, tabuList) )	//if the sensor is not connected, stop and return false;
+				{
+					return false;
+				}
+			}
+		}
+	}
+	return true;
+}
+
 //Must say is the vertex is covered by at least one sensor
 bool Grille::isCovered(int i, int j)
 {
@@ -134,16 +209,16 @@ void Grille::printGrid()
 		switch (this->map[0][l])
 		{
 		case 0:
-			cout << ".";
+			cout << 0;
 			break;
 		case 1:
-			cout << "+";
+			cout << 1;
 			break;
 		case 2:
-			cout << "!";
+			cout << 2;
 			break;
 		case 3:
-			cout << "*";
+			cout << 3;
 			break;
 		default:
 			break;
@@ -156,16 +231,16 @@ void Grille::printGrid()
 			switch (this->map[k][l])
 			{
 			case 0:
-				cout << ".";
+				cout << 0;
 				break;
 			case 1:
-				cout << "+";
+				cout << 1;
 				break;
 			case 2:
-				cout << "!";
+				cout << 2;
 				break;
 			case 3:
-				cout << "*";
+				cout << 3;
 				break;
 			default:
 				break;
@@ -214,17 +289,17 @@ void Grille::heuristique1()
 
 void Grille::heuristique2()
 {
-	int ** map_canditate = new int*[this->grid_size];
+	int ** map_candidate = new int*[this->grid_size];
 	for (int m = 0; m < this->grid_size; ++m) {
-		map_canditate[m] = new int[this->grid_size];
+		map_candidate[m] = new int[this->grid_size];
 		for (int u = 0; u < this->grid_size; ++u) {
-			map_canditate[m][u] = 0;
+			map_candidate[m][u] = 0;
 		}
 	}
 	for (int k = max(0, 0 - this->radius_of_communication); k <= min(this->grid_size-1, 0 + this->radius_of_communication); ++k) {
 		for (int l = max(0, 0 - this->radius_of_communication); l <= min(this->grid_size-1, 0 + this->radius_of_communication); ++l) {
-			if (map_canditate[k][l] == 0 && (pow(k,2)+ pow(l,2) <= pow(this->radius_of_communication,2))) {
-				map_canditate[k][l] = 1;
+			if (map_candidate[k][l] == 0 && (pow(k,2)+ pow(l,2) <= pow(this->radius_of_communication,2))) {
+				map_candidate[k][l] = 1;
 			}
 		}
 	}
@@ -233,7 +308,7 @@ void Grille::heuristique2()
 
 		for (int k = 0; k < this->grid_size; ++k) {
 			for (int l = 0; l < this->grid_size; ++l) {
-				if (map_canditate[k][l] == 1) { liste_de_candidats.push_back(pair<int, int>(k, l)); }
+				if (map_candidate[k][l] == 1) { liste_de_candidats.push_back(pair<int, int>(k, l)); }
 			}
 		}
 		
@@ -245,17 +320,17 @@ void Grille::heuristique2()
 
 		for (int k = max(0, vertex.first - this->radius_of_communication); k <= min(this->grid_size-1, vertex.first + this->radius_of_communication); ++k) {
 			for (int l = max(0, vertex.second - this->radius_of_communication); l <= min(this->grid_size-1, vertex.second + this->radius_of_communication); ++l) {
-				if (map_canditate[k][l] == 0 && (pow(k - vertex.first, 2) + pow(l-vertex.second, 2) <= pow(this->radius_of_communication, 2))) {
-					map_canditate[k][l] = 1;
+				if (map_candidate[k][l] == 0 && (pow(k - vertex.first, 2) + pow(l-vertex.second, 2) <= pow(this->radius_of_communication, 2))) {
+					map_candidate[k][l] = 1;
 				}
 			}
 		}
-		map_canditate[vertex.first][vertex.second] = 2;
+		map_candidate[vertex.first][vertex.second] = 2;
 		
 	}
-	//this->printGrid();
 	this->print_objective_function();
-	}
+}
+
 
 
 void Grille::print_objective_function() {
@@ -268,9 +343,12 @@ void Grille::print_objective_function() {
 			}
 		}
 	}
-	this->printGrid();
-	cout << capteur << endl;
+	cout << "value : "<< capteur << endl;
 }
 Grille::~Grille()
 {
+	for (int i = 0; i < grid_size;i++)
+	{
+		delete[] map[i];
+	}
 }
