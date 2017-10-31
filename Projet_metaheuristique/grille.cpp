@@ -308,21 +308,21 @@ bool Grille::availableForSensor(int i, int j)
 void Grille::printGrid()
 {
 
-	cout << "#";
+	cout << "o";
 	for (int l = 1; l < this->grid_size; ++l) {
 		switch (this->map[0][l])
 		{
 		case 0:
-			cout << "o";
+			cout << "?";
 			break;
 		case 1:
-			cout << ".";
+			cout << "-";
 			break;
 		case 2:
-			cout << "x";
+			cout << "!";
 			break;
 		case 3:
-			cout << "*";
+			cout << "x";
 			break;
 		default:
 			break;
@@ -335,16 +335,16 @@ void Grille::printGrid()
 			switch (this->map[k][l])
 			{
 			case 0:
-				cout << "o";
+				cout << "?";
 				break;
 			case 1:
-				cout << ".";
+				cout << "-";
 				break;
 			case 2:
-				cout << "x";
+				cout << "!";
 				break;
 			case 3:
-				cout << "*";
+				cout << "x";
 				break;
 			default:
 				break;
