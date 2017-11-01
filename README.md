@@ -9,7 +9,8 @@ Trouver un ensemble dominant dans le graphe (algo optimal ?) puis relier chaque 
 
 
 2/Find a way to explore neighboroods
-
+Ajout/suppression d'un capteur
+Recherche locale ? (cf fonction cleanGrid qui supprime les capteurs inutiles)
 
 3/Find an appropriate meta-heuristic to explore this neighborhood
 
