@@ -6,6 +6,7 @@
 #include "grille.h"
 #include <ctime>
 #include <cstdlib>
+#include"GenAlgo.h"
 
 using namespace std;
 
@@ -18,55 +19,79 @@ using namespace std;
 //	else { return b; }
 //}
 int main()
-{	int n;
-	std::cout << "Enter grid size" << endl;
-	std::cin >> n;
-	int r_captation;
-	cout << "Enter r_captation" << endl;
-	cin >> r_captation;
-	int r_communication;
-	cout << "Enter r_communication" << endl;
-	cin >> r_communication;
+{	
+	while (true)
+	{
+		//int n;
+		//std::cout << "Enter grid size" << endl;
+		//std::cin >> n;
+		//int r_captation;
+		//cout << "Enter r_captation" << endl;
+		//cin >> r_captation;
+		//int r_communication;
+		//cout << "Enter r_communication" << endl;
+		//cin >> r_communication;
 
-	//Instantiation of a virgin grid
-	
-	
-	//initialization of the rand function
-	srand(time(NULL));
+		////Instantiation of a virgin grid
 
-	for (int i = 0; i < 10; ++i) {
-		Grille* nouvelleGrille = new Grille(n, r_captation, r_communication);
 
-		nouvelleGrille->heuristique2();
+		////initialization of the rand function
+		//srand(time(NULL));
 
-		nouvelleGrille->printGrid();
-		bool sensorDeleted = false;
-		int k = 0;
-		int l = 0;
-		while(!sensorDeleted)
+		//for (int i = 0; i < 2; ++i) {
+		//	Grille* nouvelleGrille = new Grille(n, r_captation, r_communication);
+
+		//	nouvelleGrille->heuristique2();
+		//	/*for (int i = 0; i < n; ++i)
+		//	{
+		//		for (int j = 0; j < n; ++j)
+		//		{
+		//			nouvelleGrille->map[i][j] = 3;
+		//		}
+		//	}
+		//	nouvelleGrille->map[0][0] = 1;*/
+
+		//	nouvelleGrille->printGrid();
+
+		//	nouvelleGrille->cleanGrid();
+
+		//	nouvelleGrille->printGrid();
+
+		//	delete nouvelleGrille;
+		//}
+		int gridSize;
+		cout << "Enter grid size" << endl;
+		cin >> gridSize;
+		int r_captation;
+		cout << "Enter r_captation" << endl;
+		cin >> r_captation;
+		int r_communication;
+		cout << "Enter r_communication" << endl;
+		cin >> r_communication;
+		int popSize;
+		cout << "Enter population size" << endl;
+		cin >> popSize;
+
+		GenAlgo solver = GenAlgo(gridSize, r_captation, r_communication, popSize);
+
+		solver.populate();
+
+		int stopCriterion = 0;
+		while (stopCriterion < 1)
 		{
-			if (nouvelleGrille->map[k][l] == 3)
-			{
-				nouvelleGrille->map[k][l] = 0;
-				sensorDeleted = true;
-			}
-			l++;
-			if (l == nouvelleGrille->grid_size)
-			{
-				k++;
-				l = 0;
-			}
-			
+			//Generation of a children population.
+			solver.reproduce();
+
+			//Selection of the individuals in the final population.
+			solver.replaceParents();
+
+			//Mutation of the final population.
+			solver.mutate();
+
+			stopCriterion++;
 		}
-		nouvelleGrille->printGrid();
-		cout << "is connected ? " << nouvelleGrille->isConnected() << "\n"<<endl;
-		delete nouvelleGrille;
+
 	}
-
-	
-
-	int ok;
-	cin >> ok;
 	return 0;
 }
 
