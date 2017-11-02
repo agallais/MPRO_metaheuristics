@@ -1,15 +1,14 @@
 #pragma once
-
+#include "grille.h"
 
 class Solution
 {
 public:
 	int** map;
 	int gridSize;
+	Grille* grille;
 
-
-
-	Solution(int** map2,int n);
+	Solution(Grille*  grille);
 
 	bool improve_solution();
 

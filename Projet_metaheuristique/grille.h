@@ -19,6 +19,8 @@ public :
 public:
 	Grille(int n, int r_captation, int r_communication); // nb lignes, nb colonnes
 
+	Grille(int n , int** map);
+
 	Grille(const Grille & grid); // nb lignes, nb colonnes
 
 	bool isCovered(int i, int j);//Must say is the vertex is covered by at least one sensor after a sensor (i,j) is deleted.
@@ -32,7 +34,8 @@ public:
 	void addSensor(int i, int j);
 
 	bool sensorIsConnected(int i, int j, vector<pair<int, int>> tabuList); //Checks if the sensor (i,j) is connected or not.
-																			//The tabu list helps to prevent cycles when calling recursively the function.
+					
+																		   //The tabu list helps to prevent cycles when calling recursively the function.
 
 	bool isAdmissible(int i, int j); //True if the grid is covered AND connected after deleting sensor (i,j), false otherwise
 

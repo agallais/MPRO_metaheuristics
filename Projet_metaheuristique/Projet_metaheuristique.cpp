@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include <iostream>
 #include "grille.h"
+#include "Solution.h"
 #include <ctime>
 #include <cstdlib>
 
@@ -19,8 +20,8 @@ using namespace std;
 //}
 int main()
 {	
-	while (true)
-	{
+	
+	
 		int n;
 		std::cout << "Enter grid size" << endl;
 		std::cin >> n;
@@ -37,29 +38,21 @@ int main()
 		//initialization of the rand function
 		srand(time(NULL));
 
-		for (int i = 0; i < 1; ++i) {
 			Grille* nouvelleGrille = new Grille(n, r_captation, r_communication);
 
-			nouvelleGrille->heuristique2();
-			/*for (int i = 0; i < n; ++i)
-			{
-				for (int j = 0; j < n; ++j)
-				{
-					nouvelleGrille->map[i][j] = 3;
-				}
-			}
-			nouvelleGrille->map[0][0] = 1;*/
-
+			nouvelleGrille->heuristique1();
+			
 			nouvelleGrille->printGrid();
+			Solution new_sol = Solution(nouvelleGrille);
 
-			nouvelleGrille->cleanGrid();
+			new_sol.improve_solution();
+			
+			Grille* newGrid = new Grille(n, new_sol.map);
+		
+			newGrid->printGrid();
 
-			nouvelleGrille->printGrid();
-
-			delete nouvelleGrille;
-		}
-
-	}
+			cout << "End" << endl;
+	
 	return 0;
 }
 
