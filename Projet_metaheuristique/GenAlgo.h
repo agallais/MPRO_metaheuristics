@@ -1,7 +1,6 @@
 #pragma once
 
 #include"Chromosome.h"
-#include"Population.h"
 
 class GenAlgo
 {
