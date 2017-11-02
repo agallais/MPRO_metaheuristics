@@ -45,7 +45,7 @@ Solution::~Solution()
 }
 
 
-bool Solution::improve_solution()
+bool Solution::improve_solution(int x)
 {
 	bool improvable = false;
 
@@ -61,7 +61,7 @@ bool Solution::improve_solution()
 		}
 	}
 
-	for (int i = 0; i < 10; ++i) {
+	for (int i = 0; i < x; ++i) {
 		int toBeRemoved = rand_A_b(0, listOfCaptors.size());
 
 
@@ -90,18 +90,31 @@ bool Solution::removable(int i, int j)
 	this->map[i][j] = 0;
 
 	vector<pair<int, int>> orphans = vector<pair<int, int>>();
-	for (int k = max(0, i - r_capt); k < min(this->gridSize, i + r_capt); ++k) {
-		for (int l = max(0, j - r_capt); l < min(this->gridSize, j + r_capt); ++l) {
-
-			if (pow(k - i, 2) + pow(l - j, 2) < pow(r_capt, 2)) {
+	
+	for (int k = max(0, i - r_capt); k < this->gridSize && k <= i + r_capt ; ++k) {
+	
+		for (int l = max(0, j - r_capt); l < this->gridSize && l <= j + r_capt; ++l) {
+			// k, l is effectively capted by i j 
+			if ((pow(k - i, 2) + pow(l - j, 2) )<= pow(r_capt, 2)) {
+			
 				//Now we should check is the point is already covered
-				if (this->map[k][l] <= 1) {
+				
+				int controle = this->map[k][l];
+
+				if (controle ==3) {
+				
+					//Sensor on (k,l)
+					this->map[i][j] = 1;
+					
+				} else { 
+					//No sensor on (k,l)
 					orphans.push_back(pair<int, int>(k, l));
-				} {this->map[i][j] = 1; }
+				}
 			}
 		}
 
 	}
+
 
 	if (this->map[i][j] == 0) {
 		//it means there is no captor to measure the value in (i,j), so the captor (i,j) is NOT removable
@@ -118,18 +131,23 @@ bool Solution::removable(int i, int j)
 
 		int l = max(0, orphanIterator->second - r_capt);
 		bool lookFurther = true;
-		while (lookFurther &&  l < min(this->gridSize, orphanIterator->second + r_capt)) {
+		while (lookFurther &&  l < this->gridSize && l <= orphanIterator->second + r_capt) {
 
 			int k = max(0, orphanIterator->first - r_capt);
-			while (lookFurther && (k < min(this->gridSize, orphanIterator->first + r_capt))) {
-				if (map[k][l] == 3) { lookFurther = false; }
+
+			while (lookFurther && (k < this->gridSize && k <= orphanIterator->first + r_capt)) {
+				
+				if (pow(k-orphanIterator->first, 2) + pow(orphanIterator->second-l,2) <= pow(r_capt, 2) && map[k][l] == 3) { lookFurther = false; }
 
 				k++;
 			}
 			l++;
 		}
-
+		if (lookFurther) { 
+		this->map[i][j] = 3;
+		return false; }
 	}
+	
 
 	//Now 
 
@@ -150,8 +168,8 @@ bool Solution::removable(int i, int j)
 		pair<int, int> newVertex = nextToVisit.back();
 		nextToVisit.pop_back();
 
-		for (int k = max(newVertex.first - this->grille->radius_of_communication, 0); k < min(newVertex.first + this->grille->radius_of_communication+1, this->gridSize); k++) {
-			for (int l = max(newVertex.second - this->grille->radius_of_communication, 0); l < min(newVertex.second + this->grille->radius_of_communication+1, this->gridSize); l++) {
+		for (int k = max(newVertex.first - this->grille->radius_of_communication, 0); k <= newVertex.first + this->grille->radius_of_communication && k < this->gridSize; k++) {
+			for (int l = max(newVertex.second - this->grille->radius_of_communication, 0); l <= newVertex.second + this->grille->radius_of_communication && l < this->gridSize; l++) {
 
 				if (pow(newVertex.first - k,2) + pow(newVertex.second - l, 2) <= pow(this->grille->radius_of_communication, 2) && map[k][l] == 3 && !alreadySeen[k][l]) {
 					nextToVisit.push_back(pair<int, int>(k, l));

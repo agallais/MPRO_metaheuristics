@@ -177,14 +177,7 @@ void Grille::addSensor(int i, int j)
 
 	else
 	{
-		//srand(time(NULL));
-		//double probability_of_being_selected = ((double)neighbors.size()) / (this->nbDeVoisinsMax(i, j));
-		//if (this->non_covered_points < 5) {
-		//	probability_of_being_selected = 1.0;
-		//}
 		
-		//double tirage = (double)rand() / RAND_MAX;
-		//if (tirage < probability_of_being_selected || this->non_covered_points < 0.05*this->grid_size) {
 		if (true){
 			vector<pair<int, int>>::iterator neighborsIterator;
 			for (neighborsIterator = neighbors.begin(); neighborsIterator != neighbors.end(); neighborsIterator++) {
@@ -382,7 +375,7 @@ void Grille::heuristique1()
 
 		if (this->availableForSensor(i, j)) {
 
-			cout << i << " " << j << endl;
+		//	cout << i << " " << j << endl;
 
 			if (this->connect(i, j)) {
 				this->addSensor(i, j);

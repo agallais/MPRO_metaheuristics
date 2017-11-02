@@ -12,7 +12,7 @@ public:
 
 	Solution(Grille*  grille);
 
-	bool improve_solution();
+	bool improve_solution(int x);
 
 	bool removable(int i , int j);
 
