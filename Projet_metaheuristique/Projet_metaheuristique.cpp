@@ -44,8 +44,11 @@ int main()
 			
 			nouvelleGrille->printGrid();
 			Solution new_sol = Solution(nouvelleGrille);
+			int x;
 
-			new_sol.improve_solution();
+			cout << "Please enter the number of vertices you want to remove" << endl;
+			cin >> x;
+			new_sol.improve_solution(x);
 			
 			Grille* newGrid = new Grille(n, new_sol.map);
 		
