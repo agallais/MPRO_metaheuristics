@@ -3,6 +3,7 @@
 #include<cmath>
 #include <vector>
 #include <time.h>
+#include <algorithm>
 
 //We need to do something clear about what the numbers in the map field mean
 
@@ -10,20 +11,6 @@ using namespace std;
 
 int rand_a_b(int a, int b) {
 	return rand() % (b - a) + a;
-}
-
-int min(int a, int b) {
-	if (a < b) { return a; }
-	else { return b; }
-}
-
-int max(int a, int b) {
-
-	if (a > b) {
-		return a;
-	}
-	else { return b; }
-
 }
 
 Grille::Grille(int n, int r_captation, int r_communication)
@@ -44,6 +31,23 @@ Grille::Grille(int n, int r_captation, int r_communication)
 
 	}
 	this->map[0][0] = 1;
+}
+
+Grille::Grille(int n, int ** map)
+{
+	this->grid_size = n;
+	int** copyMap = new int*[n];
+
+	for (int i = 0; i < n; ++i) {
+		copyMap[i] = new int[n];
+
+		for (int j = 0; j < n; ++j) {
+			copyMap[i][j] = map[i][j];
+		}
+	}
+
+
+	this->map = copyMap;
 }
 
 Grille::Grille(const Grille & grid)
@@ -273,8 +277,7 @@ bool Grille::isCovered(int i_deleted, int j_deleted)
 		for (int j = max(j_deleted - this->radius_of_captation, 0); j <= j_deleted + this->radius_of_captation && j < this->grid_size; ++j) 
 		{
 			if ((((i - i_deleted) * (i - i_deleted)) + ((j - j_deleted) *(j - j_deleted))) <= (pow(this->radius_of_captation, 2)) 
-				&& this->map[i][j] == 1 
-				&& !(i== 0 && j == 0))
+				&& this->map[i][j] == 1 && !(i== 0 && j == 0))
 			{
 				bool isCovered = false;
 				for (int k = max(0, i - this->radius_of_captation); k <= i + this->radius_of_captation && k < this->grid_size; ++k)
@@ -307,22 +310,21 @@ bool Grille::availableForSensor(int i, int j)
 
 void Grille::printGrid()
 {
-
-	cout << "\n" << "o";
+	cout << "#";
 	for (int l = 1; l < this->grid_size; ++l) {
 		switch (this->map[0][l])
 		{
 		case 0:
-			cout << "?";
+			cout << "o";
 			break;
 		case 1:
-			cout << "-";
+			cout << ".";
 			break;
 		case 2:
-			cout << "!";
+			cout << "x";
 			break;
 		case 3:
-			cout << "x";
+			cout << "*";
 			break;
 		default:
 			break;
@@ -335,16 +337,16 @@ void Grille::printGrid()
 			switch (this->map[k][l])
 			{
 			case 0:
-				cout << "?";
+				cout << "o";
 				break;
 			case 1:
-				cout << "-";
+				cout << ".";
 				break;
 			case 2:
-				cout << "!";
+				cout << "x";
 				break;
 			case 3:
-				cout << "x";
+				cout << "*";
 				break;
 			default:
 				break;
@@ -384,56 +386,59 @@ void Grille::heuristique1()
 
 			if (this->connect(i, j)) {
 				this->addSensor(i, j);
-				this->printGrid();
+				
 			}
 
 		}
 	}
+	this->printGrid();
 }
 
 void Grille::heuristique2()
 {
+	/*
 	int ** map_candidate = new int*[this->grid_size];
 	for (int m = 0; m < this->grid_size; ++m) {
 		map_candidate[m] = new int[this->grid_size];
 		for (int u = 0; u < this->grid_size; ++u) {
 			map_candidate[m][u] = 0;
 		}
-	}
-	for (int k = max(0, 0 - this->radius_of_communication); k <= min(this->grid_size-1, 0 + this->radius_of_communication); ++k) {
+	}*/
+	for(int k = max(0, 0 - this->radius_of_communication); k <= min(this->grid_size-1, 0 + this->radius_of_communication); ++k) {
 		for (int l = max(0, 0 - this->radius_of_communication); l <= min(this->grid_size-1, 0 + this->radius_of_communication); ++l) {
-			if (map_candidate[k][l] == 0 
+			if (this->map[k][l] == 0 
 				&& (pow(k,2)+ pow(l,2) <= pow(this->radius_of_communication,2))
 				&& !(k == 0 && l == 0)) {
-				map_candidate[k][l] = 1;
+				this->map[k][l] = 1;
 			}
 		}
 	}
-	while (this->notCovered()) {
-		vector<pair<int, int>> liste_de_candidats = vector<pair<int, int>>();
-
-		for (int k = 0; k < this->grid_size; ++k) {
-			for (int l = 0; l < this->grid_size; ++l) {
-				if (map_candidate[k][l] == 1) { liste_de_candidats.push_back(pair<int, int>(k, l)); }
-			}
+	vector<pair<int, int>> liste_de_candidats = vector<pair<int, int>>();
+	for (int k = 0; k < this->grid_size; ++k) {
+		for (int l = 0; l < this->grid_size; ++l) {
+			if (this->map[k][l] == 1) { liste_de_candidats.push_back(pair<int, int>(k, l)); }
 		}
+	}
+	while (this->notCovered() && !liste_de_candidats.empty()) {
+		
+
 		
 		int lenght = liste_de_candidats.size();
-
+		if (liste_de_candidats.empty()) { break; }
 		int capteur_selected = rand_a_b(0, lenght);
 		pair<int, int> vertex = liste_de_candidats[capteur_selected];
 		this->addSensor(vertex.first, vertex.second);
 
 		for (int k = max(0, vertex.first - this->radius_of_communication); k <= min(this->grid_size-1, vertex.first + this->radius_of_communication); ++k) {
 			for (int l = max(0, vertex.second - this->radius_of_communication); l <= min(this->grid_size-1, vertex.second + this->radius_of_communication); ++l) {
-				if (map_candidate[k][l] == 0 
+				if (this->map[k][l] == 0 
 					&& (pow(k - vertex.first, 2) + pow(l-vertex.second, 2) <= pow(this->radius_of_communication, 2))
 					&& !(k==0 && l == 0)) {
-					map_candidate[k][l] = 1;
+					this->map[k][l] = 1;
 				}
 			}
 		}
-		map_candidate[vertex.first][vertex.second] = 2;
+		this->map[vertex.first][vertex.second] = 2;
 		
 	}
 	
@@ -454,6 +459,7 @@ void Grille::print_objective_function() {
 	cout << "value : "<< capteur << endl;
 }
 Grille::~Grille()
+
 {
 	for (int i = 0; i < grid_size;i++)
 	{
