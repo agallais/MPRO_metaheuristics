@@ -384,7 +384,6 @@ void Grille::heuristique1()
 
 		}
 	}
-	this->printGrid();
 }
 
 void Grille::heuristique2()
