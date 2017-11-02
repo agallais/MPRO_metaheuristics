@@ -1,12 +1,9 @@
-// Projet_metaheuristique.cpp : définit le point d'entrée pour l'application console.
-//
-
 #include "stdafx.h"
 #include <iostream>
 #include "grille.h"
 #include <ctime>
 #include <cstdlib>
-#include"GenAlgo.h"
+#include "GenAlgo.h"
 
 using namespace std;
 
