@@ -35,7 +35,7 @@ Grille::Grille(int n, int r_captation, int r_communication)
 }
 
 Grille::Grille(int n, int ** map)
-{
+{//Makes a copy of the map so there is no issue of memory cleared
 	this->grid_size = n;
 	int** copyMap = new int*[n];
 
