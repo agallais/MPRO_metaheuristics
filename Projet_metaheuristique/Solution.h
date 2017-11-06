@@ -12,10 +12,15 @@ public:
 
 	Solution(Grille*  grille);
 
+	Solution();
+
 	bool improve_solution(int x);
 
 	bool removable(int i , int j);
 
+	int objective_function();
+
+	bool worsen_solution(int x);
 
 	~Solution();
 };

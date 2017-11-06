@@ -14,7 +14,9 @@ int rand_A_b(int a, int b) {
 }
 
 Solution::Solution(Grille* grille)
+
 {
+//Creates a copy of the grid so there is no modification of the input
 	int** copyMap = new int*[grille->grid_size];
 
 	for (int i = 0; i < grille->grid_size; ++i) {
@@ -30,6 +32,38 @@ Solution::Solution(Grille* grille)
 
 	this->grille = grille;
 }
+int Solution::objective_function() {
+
+	int capteur = 0;
+	for (int k = 0; k < this->gridSize; ++k) {
+		for (int l = 0; l < this->gridSize; ++l) {
+			if (this->map[k][l] == 3) {
+				capteur++;
+			}
+		}
+	}
+	//cout << "value : " << capteur << endl;
+	return capteur;
+}
+
+
+Solution::Solution() {/*
+	int** copyMap = new int*[10];
+
+	for (int i = 0; i < grille->grid_size; ++i) {
+		copyMap[i] = new int[grille->grid_size];
+
+		for (int j = 0; j < grille->grid_size; ++j) {
+			copyMap[i][j] = grille->map[i][j];
+		}
+	}
+
+	this->gridSize = grille->grid_size;
+	this->map = copyMap;
+
+	this->grille = grille;
+	*/
+};
 
 
 
@@ -38,9 +72,9 @@ Solution::Solution(Grille* grille)
 
 Solution::~Solution()
 {
-	for (int i = 0; i < gridSize; i++)
+	for (int i = 0; i < this->gridSize; i++)
 	{
-		delete[] map[i];
+		delete[] this->map[i];
 	}
 }
 
@@ -192,6 +226,34 @@ bool Solution::removable(int i, int j)
 
 
 	}
+
+	return true;
+}
+
+bool Solution::worsen_solution(int x) {
+
+	vector<pair<int, int>> listOfCandidates = vector<pair<int, int>>();
+
+	for (int k = 0; k < this->gridSize; ++k) {
+		for (int l = 0; l < this->gridSize; ++l) {
+
+			if (this->map[k][l] == 1) {
+				listOfCandidates.push_back(pair<int, int>(k, l));
+			}
+		
+		}
+	}
+
+	for (int i = 0; i < x; ++i) {
+	
+		int toAdd = rand_A_b(0, listOfCandidates.size());
+
+		pair<int, int> vertex = listOfCandidates[toAdd];
+		this->map[vertex.first][vertex.second] = 3;
+	
+	}
+
+
 
 	return true;
 }
