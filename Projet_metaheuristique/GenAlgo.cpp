@@ -1,5 +1,9 @@
 #include "GenAlgo.h"
 #include <iostream>
+#include <cstdlib>
+#include<algorithm>
+
+using namespace std;
 
 GenAlgo::GenAlgo(int _gridSize, int _r_captation, int _r_communication, int n)
 {
@@ -28,7 +32,7 @@ void GenAlgo::populate()
 
 		//Generation of a network of sensors.
 		grid->heuristique1();
-		cout << "\n" << "Parent " << k << " :" << endl;
+		cout << "Parent " << k << " :" << endl;
 		grid->printGrid();
 
 		//Creation of a solution.
@@ -116,11 +120,11 @@ void GenAlgo::reproduce()
 		Chromosome parent1 = coupleIterator->first;
 		Chromosome parent2 = coupleIterator->second;
 
-		int cutPosition = ceil(gridSize / 2);
+		int cutPosition = ceil((double) gridSize / 2);
 
 		//We extract in both parents all the sensors that have a column position greater or equal to cut position.
-		Chromosome children1 = Chromosome(parent1);
-		Chromosome children2 = Chromosome(parent2);
+		Chromosome child1 = Chromosome(parent1);
+		Chromosome child2 = Chromosome(parent2);
 		Chromosome portionOfParent1 = Chromosome(gridSize);
 		Chromosome portionOfParent2 = Chromosome(gridSize);
 
@@ -132,7 +136,7 @@ void GenAlgo::reproduce()
 			{
 				portionOfParent1.content.push_back(*geneIterator);
 				
-				children1.content.erase(children1.content.begin() + k);
+				child1.content.erase(child1.content.begin() + k);
 				k--;
 			}
 			k++;
@@ -144,26 +148,104 @@ void GenAlgo::reproduce()
 			{
 				portionOfParent2.content.push_back(*geneIterator);
 
-				children2.content.erase(children2.content.begin() + k);
+				child2.content.erase(child2.content.begin() + k);
 				k--;
 			}
 			k++;
 		}
 
 		//Creation of the children.
-		children1.content.insert(children1.content.begin(), portionOfParent2.content.begin(), portionOfParent2.content.end());
-		children2.content.insert(children2.content.begin(), portionOfParent1.content.begin(), portionOfParent1.content.end());
-
-		cout << "\n" << "Children " << endl;
-		children1.printSol(Grille(gridSize, r_captation, r_communication));
-		cout << "\n" << "Children " << endl;
-		children2.printSol(Grille(gridSize, r_captation, r_communication));
+		child1.content.insert(child1.content.begin(), portionOfParent2.content.begin(), portionOfParent2.content.end());
+		child2.content.insert(child2.content.begin(), portionOfParent1.content.begin(), portionOfParent1.content.end());
 
 		//Filling of the children population.
-		children.push_back(children1);
-		children.push_back(children2);
+		children.push_back(child1);
+		children.push_back(child2);
 	}
 
+	
+
+}
+
+
+
+/*
+Repairs the children.
+*/
+void GenAlgo::repairChildren()
+{
+	//Middle of the grid.
+	int cutPosition = ceil((double)this->gridSize / 2);
+
+	//We have to look for unconnected sensors and uncovered targets.
+	//The targets that could be not covered after reproduction are on the frontier of the cut.
+
+	//Loop on children.
+	for (vector<Chromosome>::iterator childIterator = children.begin(); childIterator != children.end(); childIterator++)
+	{
+		//Construction of the grid associated to the solution.
+		Grille* childGrid = new Grille(this->gridSize, this->r_captation, this->r_communication, *childIterator );
+		
+		cout<<"Child before repair" << endl;
+		childGrid->printGrid();
+
+		//If the solution is not admissible, then repairing is necessary.
+		if (!childGrid->isCovered())
+		{
+
+			for (int i = 0; i < this->gridSize; ++i)
+			{
+				for (int j = max(0, cutPosition - this->r_captation); j < cutPosition + this->r_captation; ++j)
+				{
+					if (childGrid->map[i][j] == 0)
+					{
+						//We connect the sensor with the nearest sensor in the left part.
+						pair<int, int> newGene = childGrid->cover(i, j);
+						childIterator->content.push_back(newGene);
+					}
+				}
+			}
+			cout << "After cover repairing" << endl;
+			childGrid->printGrid();
+			cout << "Child is covered ? " << childGrid->isCovered() << endl;
+		}
+
+		if (!childGrid->isConnected())
+		{
+			cout << "Before connection repairing" << endl;
+			childGrid->printGrid();
+
+			//Add a sensor for every connected component on the right side of the child (second middle part of the grid).
+			int** color = childGrid->colorGrid();
+			int component = 1;
+
+			//Loop on every colored sensor in the neighborhood of the frontier
+			for (int i = 0; i < this->gridSize; ++i)
+			{
+				for (int j = cutPosition; j < cutPosition + this->r_communication; ++j)
+				{
+					//We are on a sensor with a different color
+					if (childGrid->map[i][j] >= 2 && color[i][j] == component)
+					{
+						if (childGrid->map[i][j] == 2)
+						{
+							//We connect the sensor with the nearest sensor in the left part.
+							pair<int,int> newGene = childGrid->connect(i, j);
+							childIterator->content.push_back(newGene);
+						}
+						//Next component.
+						component++;
+					}
+				}
+			}
+
+			cout << "Child is connected ? " << childGrid->isConnected() << endl;
+			cout << "After connection repairing" << endl;
+			childGrid->printGrid();
+		}
+		cout << "Child after repair" << endl;
+		childGrid->printGrid();
+	}
 }
 
 /*
@@ -171,10 +253,12 @@ Select the individuals to constitute the final population.
 */
 void GenAlgo::replaceParents()
 {
+	parents = children;
 }
 /*
 Mutate 5% of the population to diversify.
 */
 void GenAlgo::mutate()
 {
+
 }

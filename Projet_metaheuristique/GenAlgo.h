@@ -1,6 +1,7 @@
 #pragma once
 
 #include"Chromosome.h"
+#include"grille.h"
 
 class GenAlgo
 {
@@ -25,6 +26,11 @@ public:
 	Creates the children population
 	*/
 	void reproduce();
+
+	/*
+	Repairs the children.
+	*/
+	void repairChildren();
 
 	/*
 	Select children and parents to constitute the final population.

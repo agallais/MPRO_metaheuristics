@@ -20,27 +20,7 @@ Chromosome::Chromosome(const Chromosome & xsome)
 Chromosome::~Chromosome()
 {
 }
-/*
-Print solution.
-*/
-void Chromosome::printSol(Grille grid)
-{
-	for (int i = 0; i < grid.grid_size; ++i)
-	{
-		for (int j = 0; j < grid.grid_size; ++j)
-		{
-			if (this->containsGene(i, j))
-			{
-				grid.map[i][j] = 3;
-			}
-			else
-			{
-				grid.map[i][j] = 1;
-			}
-		}
-	}
-	grid.printGrid();
-}
+
 
 void Chromosome::mutate()
 {

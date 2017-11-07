@@ -1,7 +1,6 @@
 #pragma once
 
 #include<vector>
-#include"grille.h"
 
 using namespace std;
 
@@ -29,11 +28,6 @@ public:
 	Destructor.
 	*/
 	~Chromosome();
-
-	/*
-	Print solution.
-	*/
-	void printSol(Grille grid);
 
 	/*
 	Operates a small change in the network.
