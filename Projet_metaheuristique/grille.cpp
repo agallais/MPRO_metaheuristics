@@ -122,8 +122,6 @@ Colors every connex component of the righ side of the grid.
 */
 int** Grille::colorGrid()
 {
-	//Defines the limit of the right side of the grid.
-	int cutPosition = ceil(this->grid_size / 2);
 
 	//Map of colors.
 	int** color = new int*[this->grid_size];
@@ -139,10 +137,12 @@ int** Grille::colorGrid()
 	int newColor = 0;
 	for (int i = 0; i < this->grid_size; ++i)
 	{
-		for (int j = cutPosition; j < this->grid_size; ++j)
+		for (int j = 0; j < this->grid_size; ++j)
 		{
-			//If the position is not colored yet, color its connex component with a new color.
-			if (color[i][j] == 0)
+			//If the sensor is not colored yet, color its connex component with a new color.
+			if ((i==0 && j == 0)
+				|| (this->map[i][j] >= 2
+				&& color[i][j] == 0))
 			{
 				//New color.
 				newColor++;
@@ -166,6 +166,7 @@ void Grille::colorConnexComponent(int i, int j, int** color, int newColor)
 		for (int l = max(0, j - this->radius_of_communication); l < this->grid_size && l <= j + this->radius_of_communication; ++l)
 		{
 			if ((((k - i) * (k - i)) + ((l - j) *(l - j))) <= (pow(this->radius_of_communication, 2))
+				&& this->map[k][l] >= 2
 				&& color[k][l] == 0)
 			{
 				colorConnexComponent(k, l, color, newColor);
@@ -183,7 +184,7 @@ pair<int,int> Grille::connect(int i, int j) //connects a captor to the origin by
 	*/
 	for (int k = max(0, i - this->radius_of_communication); k < this->grid_size && k <= i + this->radius_of_communication; ++k)
 	{
-		for (int l = max(0, j - this->radius_of_communication); l < this->grid_size && l <= j; ++l)
+		for (int l = max(0, j - this->radius_of_communication); l < this->grid_size && l <= j + this->radius_of_communication; ++l)
 		{
 			if (((k - i) * (k - i) + (l - j) *(l - j)) <= pow(this->radius_of_communication, 2)
 				&& this->map[k][l] <= 1)
@@ -193,7 +194,7 @@ pair<int,int> Grille::connect(int i, int j) //connects a captor to the origin by
 				*/
 				for (int m = max(0, k - this->radius_of_communication); m < this->grid_size && m <= k + this->radius_of_communication; ++m)
 				{
-					for (int n = max(0, l - this->radius_of_communication); n < this->grid_size && n <= l; ++n)
+					for (int n = max(0, l - this->radius_of_communication); n < this->grid_size && n <= l + this->radius_of_communication; ++n)
 					{
 						if (((k - m) * (k - m) + (l - n) *(l - n)) <= pow(this->radius_of_communication, 2)
 							&& this->map[m][n] == 3)
@@ -298,35 +299,35 @@ bool Grille::isAdmissible()
 	return (this->isCovered() && this->isConnected());
 }
 
-/*
-Delete the useless sensors.
-*/
-void Grille::cleanGrid() 
-{
-	//Loop on all sensors.
-	for (int i = 0; i < this->grid_size; i++)
-	{
-		for (int j = 0; j < this->grid_size; j++)
-		{
-			if (this->map[i][j] == 3)
-			{
-				//Copy of the grid to delete the sensor.
-				Grille* reducedGrid = new Grille(*this);
-				reducedGrid->map[i][j] = 1; //Sensor deleted.
-				if (reducedGrid->isAdmissible())	//If the grid is admissible when deleting the sensor, it becomes a covered target.
-				{
-					this->map[i][j] = 1;
-				}
-
-				//Otherwise the sensor is left unchanged
-				delete reducedGrid;
-			}
-		}
-	}
-}
+///*
+//Delete the useless sensors.
+//*/
+//void Grille::cleanGrid() 
+//{
+//	//Loop on all sensors.
+//	for (int i = 0; i < this->grid_size; i++)
+//	{
+//		for (int j = 0; j < this->grid_size; j++)
+//		{
+//			if (this->map[i][j] == 3)
+//			{
+//				//Copy of the grid to delete the sensor.
+//				Grille* reducedGrid = new Grille(*this);
+//				reducedGrid->map[i][j] = 1; //Sensor deleted.
+//				if (reducedGrid->isAdmissible())	//If the grid is admissible when deleting the sensor, it becomes a covered target.
+//				{
+//					this->map[i][j] = 1;
+//				}
+//
+//				//Otherwise the sensor is left unchanged
+//				delete reducedGrid;
+//			}
+//		}
+//	}
+//}
 
 /**
-Checks whether the grid is connected or not.
+Checks whether the grid is connected or not (all the sensors must be set to 2 before calling the function).
 **/
 bool Grille::isConnected()
 {
@@ -483,6 +484,181 @@ void Grille::heuristique1()
 	}
 }
 
+bool Grille::improve_solution(int x)
+{
+	
+	bool improvable = false;
+
+	//TODO : Etape 1 , reperer un sommet qu'on peut retirer facilement
+	//TODO : Etape 2 , regarder si il est vraiment 'removable'
+	vector<pair<int, int>>listOfCaptors = vector<pair<int, int>>();
+	for (int k = 0; k < this->grid_size; ++k) {
+
+		for (int l = 0; l < this->grid_size; ++l) {
+			if (this->map[k][l] == 3) {
+				listOfCaptors.push_back(pair<int, int>(k, l));
+			}
+		}
+	}
+
+	for (int i = 0; i < x; ++i) {
+		int toBeRemoved = rand_a_b(0, listOfCaptors.size());
+
+
+		vector<pair<int, int>>::iterator  vertexToBeRemoved = listOfCaptors.begin();
+
+		vertexToBeRemoved += toBeRemoved;
+
+		if (removable(vertexToBeRemoved->first, vertexToBeRemoved->second)) {
+			this->map[vertexToBeRemoved->first][vertexToBeRemoved->second] = 1;
+			listOfCaptors.erase(vertexToBeRemoved);
+			improvable = true;
+
+
+		}
+
+	}
+
+
+	return improvable;
+	
+}
+
+bool Grille::removable(int i, int j)
+{
+	int r_capt = this->radius_of_captation;
+	this->map[i][j] = 0;
+
+	vector<pair<int, int>> orphans = vector<pair<int, int>>();
+
+	for (int k = max(0, i - r_capt); k < this->grid_size && k <= i + r_capt; ++k) {
+
+		for (int l = max(0, j - r_capt); l < this->grid_size && l <= j + r_capt; ++l) {
+			// k, l is effectively capted by i j 
+			if ((pow(k - i, 2) + pow(l - j, 2)) <= pow(r_capt, 2)) {
+
+				//Now we should check is the point is already covered
+
+				int controle = this->map[k][l];
+
+				if (controle == 3) {
+
+					//Sensor on (k,l)
+					this->map[i][j] = 1;
+
+				}
+				else {
+					//No sensor on (k,l)
+					orphans.push_back(pair<int, int>(k, l));
+				}
+			}
+		}
+
+	}
+
+
+	if (this->map[i][j] == 0) {
+		//it means there is no captor to measure the value in (i,j), so the captor (i,j) is NOT removable
+		this->map[i][j] = 3;
+
+		return false;
+	}
+
+
+	//Now we only have to take care of the orphans, just to be sure a captor is taking care of them
+
+
+	for (vector<pair<int, int>>::iterator orphanIterator = orphans.begin(); orphanIterator != orphans.end(); orphanIterator++) {
+
+		int l = max(0, orphanIterator->second - r_capt);
+		bool lookFurther = true;
+		while (lookFurther &&  l < this->grid_size && l <= orphanIterator->second + r_capt) {
+
+			int k = max(0, orphanIterator->first - r_capt);
+
+			while (lookFurther && (k < this->grid_size && k <= orphanIterator->first + r_capt)) {
+
+				if (pow(k - orphanIterator->first, 2) + pow(orphanIterator->second - l, 2) <= pow(r_capt, 2) && map[k][l] == 3) { lookFurther = false; }
+
+				k++;
+			}
+			l++;
+		}
+		if (lookFurther) {
+			this->map[i][j] = 3;
+			return false;
+		}
+	}
+
+
+	//Now 
+
+	vector<pair<int, int>> nextToVisit = vector<pair<int, int>>();
+
+	bool** alreadySeen = new bool*[this->grid_size];
+	for (int i = 0; i < this->grid_size; ++i) {
+		alreadySeen[i] = new bool[this->grid_size];
+		for (int j = 0; j < this->grid_size; ++j) {
+			alreadySeen[i][j] = false;
+		}
+	}
+
+	nextToVisit.push_back(pair<int, int>(0, 0));
+
+	while (!nextToVisit.empty())
+	{
+		pair<int, int> newVertex = nextToVisit.back();
+		nextToVisit.pop_back();
+
+		for (int k = max(newVertex.first - this->radius_of_communication, 0); k <= newVertex.first + this->radius_of_communication && k < this->grid_size; k++) {
+			for (int l = max(newVertex.second - this->radius_of_communication, 0); l <= newVertex.second + this->radius_of_communication && l < this->grid_size; l++) {
+
+				if (pow(newVertex.first - k, 2) + pow(newVertex.second - l, 2) <= pow(this->radius_of_communication, 2) && map[k][l] == 3 && !alreadySeen[k][l]) {
+					nextToVisit.push_back(pair<int, int>(k, l));
+					alreadySeen[k][l] = true;
+				}
+			}
+
+		}
+	}
+
+	for (int k = 0; k < this->grid_size; ++k)
+	{
+		for (int l = 0; l < this->grid_size; ++l) {
+
+			if (this->map[k][l] == 3 && !alreadySeen[k][l]) {
+				this->map[i][j] = 3;
+				return false;
+			}
+		}
+
+
+	}
+
+	return true;
+}
+
+void Grille::update(vector<Chromosome>::iterator xsome)
+{
+	//Empty everything.
+	while (!xsome->content.empty())
+	{
+		xsome->content.pop_back();
+	}
+
+	for (int i = 0; i < this->grid_size; i++)
+	{
+		for (int j = 0; j < this->grid_size; j++)
+		{
+			if (this->map[i][j] == 3)
+			{
+				xsome->addGene(pair<int, int>(i, j));
+			}
+		}
+	}
+	xsome->fitnessValue = xsome->content.size();
+}
+
 //void Grille::heuristique2()
 //{
 //	/*
@@ -540,18 +716,18 @@ void Grille::print_objective_function() {
 	int capteur = 0;
 	for (int k = 0; k < this->grid_size; ++k) {
 		for (int l = 0; l < this->grid_size; ++l) {
-			if (this->map[k][l] == 3) {
+			if (this->map[k][l] >= 2) {
 				capteur++;
 			}
 		}
 	}
 	cout << "value : "<< capteur << endl;
 }
-Grille::~Grille()
 
+Grille::~Grille()
 {
-	for (int i = 0; i < grid_size;i++)
+	for (int i = 0; i < this->grid_size;i++)
 	{
-		delete[] map[i];
+		delete[] this->map[i];
 	}
 }

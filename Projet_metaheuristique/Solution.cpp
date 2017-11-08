@@ -14,7 +14,6 @@ int rand_A_b(int a, int b) {
 }
 
 Solution::Solution(Grille* grille)
-
 {
 //Creates a copy of the grid so there is no modification of the input
 	int** copyMap = new int*[grille->grid_size];
@@ -76,6 +75,8 @@ Solution::~Solution()
 	{
 		delete[] this->map[i];
 	}
+
+	delete grille;
 }
 
 

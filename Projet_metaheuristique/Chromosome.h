@@ -17,6 +17,7 @@ public:
 	/*
 	Constructor.
 	*/
+	Chromosome();
 	Chromosome(int gridSize);
 
 	/*
@@ -28,6 +29,11 @@ public:
 	Destructor.
 	*/
 	~Chromosome();
+
+	/*
+	Adds a gene to the solution.
+	*/
+	void addGene(pair<int,int> gene);
 
 	/*
 	Operates a small change in the network.

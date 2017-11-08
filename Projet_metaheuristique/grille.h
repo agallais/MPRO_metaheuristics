@@ -60,6 +60,12 @@ public:
 	
 	//void heuristique2();
 
+	bool improve_solution(int x);
+
+	bool removable(int i, int j);
+
+	void update(vector<Chromosome>::iterator xsome);
+
 	void print_objective_function();
 
 	~Grille();

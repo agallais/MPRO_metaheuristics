@@ -1,18 +1,20 @@
 #include "GenAlgo.h"
 #include <iostream>
 #include <cstdlib>
+#include<cmath>
+#include <vector>
+#include <time.h>
 #include<algorithm>
 
 using namespace std;
 
 GenAlgo::GenAlgo(int _gridSize, int _r_captation, int _r_communication, int n)
 {
-	gridSize = _gridSize;
-	r_captation = _r_captation;
-	r_communication = _r_communication;
-	popSize = n;
-	parents = vector<Chromosome>();
-	children = vector<Chromosome>();
+	this->gridSize = _gridSize;
+	this->r_captation = _r_captation;
+	this->r_communication = _r_communication;
+	this->popSize = n;
+	this->bestSolution = Chromosome(_gridSize);
 }
 
 
@@ -32,11 +34,12 @@ void GenAlgo::populate()
 
 		//Generation of a network of sensors.
 		grid->heuristique1();
+		grid->improve_solution(pow(grid->grid_size,2));
 		cout << "Parent " << k << " :" << endl;
 		grid->printGrid();
 
 		//Creation of a solution.
-		Chromosome xsome = Chromosome(gridSize);
+		Chromosome* xsome = new Chromosome(gridSize);
 
 		//Filling of the solution.
 		for (int i = 0; i < gridSize; ++i)
@@ -46,21 +49,20 @@ void GenAlgo::populate()
 				//If position (i,j) is a sensor, it is pushed in the solution.
 				if (grid->map[i][j] == 3)
 				{
-					xsome.content.push_back(pair<int, int>(i, j));
+					xsome->addGene(pair<int,int>(i,j));
 				}
 			}
 		}
 		//Updating of the fitness value.
-		xsome.fitnessValue = xsome.content.size();
+		xsome->fitnessValue = xsome->content.size();
 
 		//Filling of the parents population.
-		parents.push_back(xsome);
+		parents.push_back(*xsome);
 
+		delete xsome;
 		delete grid;
 	}
 	
-
-
 }
 
 /*
@@ -71,19 +73,22 @@ void GenAlgo::reproduce()
 	/*
 	Tournament selection.
 	*/
-	vector<pair<Chromosome, Chromosome>> couples = vector<pair<Chromosome, Chromosome>>();
-
+	int nbOfCouples = 0;
+	//Middle of the grid.
+	int cutPosition = ceil((double)this->gridSize / 2);
 	vector<Chromosome> tournPop = parents;
-	while (couples.size() != popSize/2)
+
+	//Tournament population cut in half.
+	
+
+	while (nbOfCouples != popSize/2)
 	{
-		//Tournament population cut in half.
 		Chromosome bestParent1 = Chromosome(gridSize);
 		Chromosome bestParent2 = Chromosome(gridSize);
 		
 		//Looking for best parent in the group 1.
-		vector<Chromosome>::iterator chromoIterator;
-		vector<Chromosome>::iterator bestChromoIterator;
-		for (chromoIterator = tournPop.begin(); chromoIterator != tournPop.begin() + tournPop.size()/2; ++chromoIterator)
+		vector<Chromosome>::iterator bestChromoIterator = tournPop.begin();
+		for (vector<Chromosome>::iterator chromoIterator = tournPop.begin(); chromoIterator != tournPop.begin() + tournPop.size()/2; ++chromoIterator)
 		{
 			if (chromoIterator->fitnessValue < bestParent1.fitnessValue)
 			{
@@ -95,7 +100,7 @@ void GenAlgo::reproduce()
 		tournPop.erase(bestChromoIterator);
 
 		//Looking for best parent in the group 2.
-		for (chromoIterator = tournPop.begin() + tournPop.size() / 2; chromoIterator != tournPop.end(); ++chromoIterator)
+		for (vector<Chromosome>::iterator chromoIterator = tournPop.begin() + tournPop.size() / 2; chromoIterator != tournPop.end(); ++chromoIterator)
 		{
 			if (chromoIterator->fitnessValue < bestParent2.fitnessValue)
 			{
@@ -106,35 +111,21 @@ void GenAlgo::reproduce()
 		//Erasing of best parent 2.
 		tournPop.erase(bestChromoIterator);
 
-		//Filling the couples.
-		couples.push_back(pair<Chromosome, Chromosome>(bestParent1, bestParent2));
-	}
-
-	/*
-	Creation of children population.
-	*/
-
-	vector<pair<Chromosome, Chromosome>>::iterator coupleIterator;
-	for (coupleIterator = couples.begin(); coupleIterator != couples.end(); ++coupleIterator)
-	{
-		Chromosome parent1 = coupleIterator->first;
-		Chromosome parent2 = coupleIterator->second;
-
-		int cutPosition = ceil((double) gridSize / 2);
+		//Creation of the couple.
+		nbOfCouples++;
 
 		//We extract in both parents all the sensors that have a column position greater or equal to cut position.
-		Chromosome child1 = Chromosome(parent1);
-		Chromosome child2 = Chromosome(parent2);
+		Chromosome child1 = Chromosome(bestParent1);
+		Chromosome child2 = Chromosome(bestParent2);
 		Chromosome portionOfParent1 = Chromosome(gridSize);
 		Chromosome portionOfParent2 = Chromosome(gridSize);
 
-		vector<pair<int,int>>::iterator geneIterator;
 		int k = 0;
-		for (geneIterator = parent1.content.begin(); geneIterator != parent1.content.end(); ++geneIterator)
+		for (vector<pair<int, int>>::iterator geneIterator = bestParent1.content.begin(); geneIterator != bestParent1.content.end(); ++geneIterator)
 		{
 			if (geneIterator->second >= cutPosition)
 			{
-				portionOfParent1.content.push_back(*geneIterator);
+				portionOfParent1.addGene(*geneIterator);
 				
 				child1.content.erase(child1.content.begin() + k);
 				k--;
@@ -142,11 +133,11 @@ void GenAlgo::reproduce()
 			k++;
 		}
 		k = 0;
-		for (geneIterator = parent2.content.begin(); geneIterator != parent2.content.end(); ++geneIterator)
+		for (vector<pair<int, int>>::iterator geneIterator = bestParent2.content.begin(); geneIterator != bestParent2.content.end(); ++geneIterator)
 		{
 			if (geneIterator->second >= cutPosition)
 			{
-				portionOfParent2.content.push_back(*geneIterator);
+				portionOfParent2.addGene(*geneIterator);
 
 				child2.content.erase(child2.content.begin() + k);
 				k--;
@@ -158,8 +149,14 @@ void GenAlgo::reproduce()
 		child1.content.insert(child1.content.begin(), portionOfParent2.content.begin(), portionOfParent2.content.end());
 		child2.content.insert(child2.content.begin(), portionOfParent1.content.begin(), portionOfParent1.content.end());
 
+		child1.fitnessValue = child1.content.size();
+		child2.fitnessValue = child2.content.size();
+
 		//Filling of the children population.
 		children.push_back(child1);
+		/*cout << "child" << endl;
+		Grille* childGrid = new Grille(this->gridSize, this->r_captation, this->r_communication, child1);
+		childGrid->printGrid();*/
 		children.push_back(child2);
 	}
 
@@ -175,7 +172,7 @@ Repairs the children.
 void GenAlgo::repairChildren()
 {
 	//Middle of the grid.
-	int cutPosition = ceil((double)this->gridSize / 2);
+	int cutPosition = ceil((double) this->gridSize / 2);
 
 	//We have to look for unconnected sensors and uncovered targets.
 	//The targets that could be not covered after reproduction are on the frontier of the cut.
@@ -186,8 +183,8 @@ void GenAlgo::repairChildren()
 		//Construction of the grid associated to the solution.
 		Grille* childGrid = new Grille(this->gridSize, this->r_captation, this->r_communication, *childIterator );
 		
-		cout<<"Child before repair" << endl;
-		childGrid->printGrid();
+		/*cout<<"Child before repair" << endl;
+		childGrid->printGrid();*/
 
 		//If the solution is not admissible, then repairing is necessary.
 		if (!childGrid->isCovered())
@@ -205,46 +202,72 @@ void GenAlgo::repairChildren()
 					}
 				}
 			}
-			cout << "After cover repairing" << endl;
-			childGrid->printGrid();
-			cout << "Child is covered ? " << childGrid->isCovered() << endl;
+			/*cout << "After cover repairing" << endl;
+			childGrid->printGrid();*/
 		}
 
 		if (!childGrid->isConnected())
 		{
-			cout << "Before connection repairing" << endl;
-			childGrid->printGrid();
+			/*cout << "Before connection repairing" << endl;
+			childGrid->printGrid();*/
 
 			//Add a sensor for every connected component on the right side of the child (second middle part of the grid).
 			int** color = childGrid->colorGrid();
-			int component = 1;
-
-			//Loop on every colored sensor in the neighborhood of the frontier
+			int colorMax = 0;
 			for (int i = 0; i < this->gridSize; ++i)
 			{
-				for (int j = cutPosition; j < cutPosition + this->r_communication; ++j)
+				for (int j = 0; j < this->gridSize; ++j)
 				{
-					//We are on a sensor with a different color
-					if (childGrid->map[i][j] >= 2 && color[i][j] == component)
+					//cout << color[i][j];
+					if (color[i][j] > colorMax)
 					{
-						if (childGrid->map[i][j] == 2)
-						{
-							//We connect the sensor with the nearest sensor in the left part.
-							pair<int,int> newGene = childGrid->connect(i, j);
-							childIterator->content.push_back(newGene);
-						}
-						//Next component.
-						component++;
+						colorMax = color[i][j];
 					}
 				}
+				//cout << endl;
 			}
+			//La composante 1 contient le puits donc on demarre a la deuxieme composante.
+			int component = 2;
 
-			cout << "Child is connected ? " << childGrid->isConnected() << endl;
-			cout << "After connection repairing" << endl;
-			childGrid->printGrid();
+			while (component <= colorMax)
+			{
+				bool isConnected = false;
+				//Loop on every colored sensor in the neighborhood of the frontier
+				for (int i = 0; i < this->gridSize; ++i)
+				{
+					for (int j = cutPosition - this->r_communication; j < cutPosition + this->r_communication; ++j)
+					{
+						//We are on a sensor with a different color
+						if (color[i][j] == component)
+						{
+							//We connect the sensor with the nearest sensor.
+							pair<int, int> newGene = childGrid->connect(i, j);
+							childIterator->content.push_back(newGene);
+							isConnected = true;
+							break;
+						}
+					}
+					if (isConnected)
+					{
+						break;
+					}
+				}
+
+				//Next component.
+				component++;
+			}
+			
+			////We rebuild the grid of the children
+			//childGrid = new Grille(this->gridSize, this->r_captation, this->r_communication, *childIterator);
+			//cout << "Child is connected ? " << childGrid->isConnected() << endl;
+			//cout << "After connection repairing" << endl;
+			//childGrid->printGrid();
 		}
-		cout << "Child after repair" << endl;
-		childGrid->printGrid();
+
+		/*childGrid->improve_solution(pow(childGrid->grid_size, 2));
+		childGrid->update(childIterator);*/
+
+		delete childGrid;
 	}
 }
 
@@ -255,10 +278,34 @@ void GenAlgo::replaceParents()
 {
 	parents = children;
 }
+
 /*
 Mutate 5% of the population to diversify.
 */
 void GenAlgo::mutate()
 {
+	double mutationProb = 0.05;
 
+	for (vector<Chromosome>::iterator childIterator = children.begin(); childIterator != children.end(); childIterator++)
+	{
+		double xsomeProb = rand();
+		if (xsomeProb < mutationProb)
+		{
+			childIterator->mutate();
+		}
+	}
+	 
+}
+/*
+Update best solution.
+*/
+void GenAlgo::update()
+{
+	for (vector<Chromosome>::iterator childIterator = children.begin(); childIterator != children.end(); childIterator++)
+	{
+		if ( childIterator->fitnessValue < bestSolution.fitnessValue)
+		{
+			bestSolution = *childIterator;
+		}
+	}
 }

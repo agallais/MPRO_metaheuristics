@@ -12,9 +12,11 @@ public:
 	int popSize;
 	vector<Chromosome> parents;
 	vector<Chromosome> children;
+	Chromosome bestSolution;
 		
 public:
 	GenAlgo(int _gridSize, int _r_captation, int _r_communication, int n);
+
 	~GenAlgo();
 
 	/*
@@ -41,6 +43,11 @@ public:
 	Mutate 5% of the population to diversify.
 	*/
 	void mutate();
+
+	/*
+	Update best solution.
+	*/
+	void update();
 
 
 

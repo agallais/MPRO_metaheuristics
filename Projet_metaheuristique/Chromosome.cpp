@@ -1,17 +1,21 @@
 #include "Chromosome.h"
 
 
+Chromosome::Chromosome()
+{
+}
+
 Chromosome::Chromosome(int gridSize)
 {
+	this->content = vector<pair<int, int>>();
 	//Initial fitness value is set to its maximum value;
-	fitnessValue = pow(gridSize,2);
+	this->fitnessValue = pow(gridSize,2);
 }
 /*
 Constructor by copy.
 */
 Chromosome::Chromosome(const Chromosome & xsome)
 {
-	content = vector<pair<int, int>>();
 	content = xsome.content;
 	fitnessValue = xsome.fitnessValue;
 }
@@ -19,6 +23,13 @@ Chromosome::Chromosome(const Chromosome & xsome)
 
 Chromosome::~Chromosome()
 {
+}
+/*
+Adds a gene to the solution.
+*/
+void Chromosome::addGene(pair<int, int> gene)
+{
+	this->content.push_back(gene);
 }
 
 
