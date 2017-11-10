@@ -177,59 +177,85 @@ void Grille::colorConnexComponent(int i, int j, int** color, int newColor)
 
 }
 
-pair<int,int> Grille::connect(int i, int j) //connects a captor to the origin by adding new captors
+pair<int,int> Grille::connect(int i, int j, bool randomConnect) //connects a captor to the origin by adding new captors
 {
-	/*
-	We visit the targets in the range of communication of (i,j).
-	*/
-	for (int k = max(0, i - this->radius_of_communication); k < this->grid_size && k <= i + this->radius_of_communication; ++k)
+	if (!randomConnect)
 	{
-		for (int l = max(0, j - this->radius_of_communication); l < this->grid_size && l <= j + this->radius_of_communication; ++l)
+		/*
+		We visit the targets in the range of communication of (i,j).
+		*/
+		for (int k = max(0, i - this->radius_of_communication); k < this->grid_size && k <= i + this->radius_of_communication; ++k)
 		{
-			if (((k - i) * (k - i) + (l - j) *(l - j)) <= pow(this->radius_of_communication, 2)
-				&& this->map[k][l] <= 1)
+			for (int l = max(0, j - this->radius_of_communication); l < this->grid_size && l <= j + this->radius_of_communication; ++l)
 			{
-				/*
-				We visit the neighbors of (k,l) (there is at least one neighbor with a connected sensor in its range).
-				*/
-				for (int m = max(0, k - this->radius_of_communication); m < this->grid_size && m <= k + this->radius_of_communication; ++m)
+				if (((k - i) * (k - i) + (l - j) *(l - j)) <= pow(this->radius_of_communication, 2)
+					&& this->map[k][l] <= 1)
 				{
-					for (int n = max(0, l - this->radius_of_communication); n < this->grid_size && n <= l + this->radius_of_communication; ++n)
+					/*
+					We visit the neighbors of (k,l) (there is at least one neighbor with a connected sensor in its range).
+					*/
+					for (int m = max(0, k - this->radius_of_communication); m < this->grid_size && m <= k + this->radius_of_communication; ++m)
 					{
-						if (((k - m) * (k - m) + (l - n) *(l - n)) <= pow(this->radius_of_communication, 2)
-							&& this->map[m][n] == 3)
+						for (int n = max(0, l - this->radius_of_communication); n < this->grid_size && n <= l + this->radius_of_communication; ++n)
 						{
-							//We put a connected sensor on (k,l).
-							this->map[k][l] = 3;
+							if (((k - m) * (k - m) + (l - n) *(l - n)) <= pow(this->radius_of_communication, 2)
+								&& this->map[m][n] == 3)
+							{
+								//We put a connected sensor on (k,l) and (i,j).
+								this->map[i][j] = 3;
+								this->map[k][l] = 3;
 
-							return pair<int,int>(k,l);
+								return pair<int, int>(k, l);
+							}
 						}
 					}
 				}
 			}
 		}
+		return pair<int, int>(0, 0);
 	}
+	else
+	{
+		//If no connection has been found, we had a random sensor in the neighborhood.
+		for (int k = max(0, i - this->radius_of_communication); k < this->grid_size && k <= i + this->radius_of_communication; ++k)
+		{
+			for (int l = max(0, j - this->radius_of_communication); l < this->grid_size && l <= j + this->radius_of_communication; ++l)
+			{
+				if (((k - i) * (k - i) + (l - j) *(l - j)) <= pow(this->radius_of_communication, 2)
+					&& this->map[k][l] <= 1)
+				{
+					//We put a sensor on (k,l).
+					this->map[k][l] = 2;
+
+					return pair<int, int>(k, l);
+				}
+			}
+		}
+	}
+
+	
 }
 
-//covers a target to a new sensor that must be covered himself.
+//covers a target with a new sensor that must be covered itself.
 pair<int, int> Grille::cover(int i, int j)
 {
 	/*
 	We visit the targets in the range of captation of (i,j) except the well.
+	We know that there exists a target (k,l) such as there is a sensor in its range of communication
 	*/
 	for (int k = max(0, i - this->radius_of_captation); k < this->grid_size && k <= i + this->radius_of_captation; ++k)
 	{
-		for (int l = max(0, j - this->radius_of_captation); l < this->grid_size && l <= j; ++l)
+		for (int l = max(0, j - this->radius_of_captation); l < this->grid_size && l <= j + this->radius_of_captation; ++l)
 		{
 			if (((k - i) * (k - i) + (l - j) *(l - j)) <= pow(this->radius_of_captation, 2)
 				&& !(k == 0 && l == 0))
 			{
 				/*
-				We visit the sensors in the range of communication of (k,l).
+				We look for sensors in the range of communication of (k,l).
 				*/
 				for (int m = max(0, k - this->radius_of_communication); m < this->grid_size && m <= k + this->radius_of_communication; ++m)
 				{
-					for (int n = max(0, l - this->radius_of_communication); n < this->grid_size && n <= l; ++n)
+					for (int n = max(0, l - this->radius_of_communication); n < this->grid_size && n <= l + this->radius_of_communication; ++n)
 					{
 						//If there is a sensor in the range of communication of target (k,l), then we put a sensor in (k,l).
 						if (((k - m) * (k - m) + (l - n) *(l - n)) <= pow(this->radius_of_communication, 2)
@@ -238,8 +264,18 @@ pair<int, int> Grille::cover(int i, int j)
 							//We put a sensor on (k,l).
 							this->map[k][l] = 2;
 
-							//(i,j) is covered.
-							this->map[i][j] = 1;
+							//All targets in the range of capt of (k,l) are covered, including (i,j).
+							for (int o = max(0, k - this->radius_of_captation); o < this->grid_size && o <= k + this->radius_of_captation; ++o)
+							{
+								for (int p = max(0, l - this->radius_of_captation); p < this->grid_size && p <= l + this->radius_of_captation; ++p)
+								{
+									if (((k - o) * (k - o) + (l - p) *(l - p)) <= pow(this->radius_of_captation, 2)
+										&& this->map[o][p] == 0)
+									{
+										this->map[o][p] = 1;
+									}
+								}
+							}
 
 							return pair<int, int>(k, l);
 						}
@@ -248,6 +284,23 @@ pair<int, int> Grille::cover(int i, int j)
 			}
 		}
 	}
+	//Else, we put a sensor on (i,j) to cover it.
+	this->map[i][j] = 2;
+
+	//All targets in the range of capt of (k,l) are covered, including (i,j).
+	for (int k = max(0, i - this->radius_of_captation); k < this->grid_size && k <= i + this->radius_of_captation; ++k)
+	{
+		for (int l = max(0, j - this->radius_of_captation); l < this->grid_size && l <= j + this->radius_of_captation; ++l)
+		{
+			if (((k - i) * (k - i) + (l - j) *(l - j)) <= pow(this->radius_of_captation, 2)
+				&& this->map[k][l] == 0)
+			{
+				this->map[k][l] = 1;
+			}
+		}
+	}
+
+	return pair<int, int>(i, j);
 }
 
 //Return true if the the grid still has uncovered vertices

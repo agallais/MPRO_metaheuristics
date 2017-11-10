@@ -42,7 +42,7 @@ public:
 	*/
 	void colorConnexComponent(int i, int j, int** color, int newColor);
 
-	pair<int,int> connect(int i, int j); //connects a captor to the origin by adding new captors and returns the new added captor.
+	pair<int,int> connect(int i, int j, bool randomConnect); //connects a captor to the origin by adding new captors and returns the new added captor.
 
 	pair<int, int> cover(int i, int j); //covers a target to a new sensor that must be covered himself.
 

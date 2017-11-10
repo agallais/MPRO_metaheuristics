@@ -32,10 +32,22 @@ void Chromosome::addGene(pair<int, int> gene)
 	this->content.push_back(gene);
 }
 
-
+/*
+Deletes random genes.
+*/
 void Chromosome::mutate()
 {
+	int nbOfDeletes = 2;
+	while (nbOfDeletes >= 1)
+	{
+		int randomGene = rand() % this->content.size();
+		vector<pair<int, int>>::iterator geneIterator = this->content.begin();
+		geneIterator += randomGene;
 
+		this->content.erase(geneIterator);
+		nbOfDeletes--;
+	}
+	
 }
 
 /*

@@ -47,7 +47,7 @@ public:
 	/*
 	Update best solution.
 	*/
-	void update();
+	bool update();
 
 
 
