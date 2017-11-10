@@ -9,7 +9,13 @@ class Grille
 {
 public :
 
-	int** map;// Les sommets valent 0 ou 1 selon qu'ils marqués ou non marqués
+	/*
+	Value 0 : the target is not covered.
+	Value 1 : the target is covered.
+	Value 2 : the sensor is not connected.
+	Value 3 : the sensor is connected.
+	*/
+	int** map;
 
 	int radius_of_captation;
 	int radius_of_communication;
@@ -22,15 +28,13 @@ public:
 
 	Grille(int n , int** map);
 
-	Grille(const Grille & grid); // nb lignes, nb colonnes
+	Grille(const Grille & grid); //cstor by copy
 
 	Grille(int n, int r_captation, int r_communication, Chromosome& xsome); //Creates a grid from a chromosome solution.
 
 	bool isCovered(); //Checks whether the grid is covered or not.
 
-	bool isConnected(); //Should be able to check whether the grid is connected.
-
-	bool isAdmissible(); //True if the grid is covered AND connected.
+	bool isConnected(); //CHecks whether the grid is connected.
 
 	/*
 	Colors every connex component of the righ side of the grid.
@@ -42,9 +46,9 @@ public:
 	*/
 	void colorConnexComponent(int i, int j, int** color, int newColor);
 
-	pair<int,int> connect(int i, int j, bool randomConnect); //connects a captor to the origin by adding new captors and returns the new added captor.
+	pair<int,int> connect(int i, int j, bool randomConnect); //connects a sensor to the origin by adding new sensors and returns the new added sensor.
 
-	pair<int, int> cover(int i, int j); //covers a target to a new sensor that must be covered himself.
+	pair<int, int> cover(int i, int j); //covers a target with a new sensor that must be covered itself.
 
 	bool notCovered(); //True if not all vertices are covered, False if all vertices are covered
 
@@ -57,13 +61,14 @@ public:
 	bool sensorIsConnected(int i, int j);   //Connect returns true if the point we try to add is connected to the well ( 0.0 point) 
 
 	void heuristique1();
-	
-	//void heuristique2();
 
+	//Deletes useless sensors.
 	bool improve_solution(int x);
 
+	//Checks if a sensor is removable or not.
 	bool removable(int i, int j);
 
+	//Update the xsome solution with the new grid.
 	void update(vector<Chromosome>::iterator xsome);
 
 	void print_objective_function();

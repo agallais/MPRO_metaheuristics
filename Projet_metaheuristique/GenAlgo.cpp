@@ -129,9 +129,10 @@ void GenAlgo::reproduce()
 		//Creation of the couple.
 		nbOfCouples++;
 
-		//We extract in both parents all the sensors that have a column position greater or equal to cut position.
 		Chromosome child1 = Chromosome(bestParent1);
 		Chromosome child2 = Chromosome(bestParent2);
+
+		//We extract in both parents all the sensors that have a column position greater or equal to cut position.
 		Chromosome portionOfParent1 = Chromosome(gridSize);
 		Chromosome portionOfParent2 = Chromosome(gridSize);
 
@@ -204,17 +205,17 @@ void GenAlgo::repairChildren()
 		/*cout<<"Child before repair" << endl;
 		childGrid->printGrid();*/
 
-		//If the solution is not admissible, then repairing is necessary.
+		//If the solution is not covered or not connected, then repair is necessary.
 		if (!childGrid->isCovered())
 		{
-
+			//Loop on uncovered targets.
 			for (int i = 0; i < this->gridSize; ++i)
 			{
 				for (int j = 0; j < this->gridSize; ++j)
 				{
 					if (childGrid->map[i][j] == 0)
 					{
-						//We connect the sensor with the nearest sensor in the left part.
+						//We add a sensor next to the target and connected to a connex component.
 						pair<int, int> newGene = childGrid->cover(i, j);
 						childIterator->content.push_back(newGene);
 					}
@@ -226,15 +227,15 @@ void GenAlgo::repairChildren()
 
 		bool childIsConnected = childGrid->isConnected();
 
+		//Decides if we add random sensors if a connex component is not connected to the well.
 		bool randomConnect = false;
 
-		//
 		while(!childIsConnected)
 		{
 			/*cout << "Before connection repair" << endl;
 			childGrid->printGrid();*/
 
-			//Color the connex component
+			//Color all the connex components
 			int** component = childGrid->colorGrid();
 			int colorMax = 0;
 			for (int i = 0; i < this->gridSize; ++i)
@@ -293,7 +294,7 @@ void GenAlgo::repairChildren()
 			childIsConnected = childGrid->isConnected();
 
 			//If the child is still not connected, we add a random sensor in the range of communication of the non connected components.
-			//If the addition of  a random sensor had been done the past iteration, we try to connect the component in the conventional way.
+			//If the addition of  a random sensor had been done the past iteration, we try to connect the component in the conventional way in the next iteration.
 			if (!childIsConnected && !randomConnect)
 			{
 				randomConnect = true;
@@ -302,9 +303,7 @@ void GenAlgo::repairChildren()
 			{
 				randomConnect = false;
 			}
-			////We rebuild the grid of the children
-			//childGrid = new Grille(this->gridSize, this->r_captation, this->r_communication, *childIterator);
-			//cout << "Child is connected ? " << childGrid->isConnected() << endl;
+			
 			/*cout << "After connection repair" << endl;
 			childGrid->printGrid();*/
 
@@ -314,6 +313,7 @@ void GenAlgo::repairChildren()
 			}
 		}
 
+		//We delete as much useless sensors as possible.
 		childGrid->improve_solution(pow(childGrid->grid_size, 2));
 		childGrid->update(childIterator);
 		
@@ -339,7 +339,7 @@ void GenAlgo::replaceParents()
 	int fractionOfParents = this->popSize / 3;
 	int fractionOfChildren = this->popSize - fractionOfParents;
 
-	//We take the half best parents.
+	//We take the fraction of the best parents.
 	for (int i = 1; i <= fractionOfParents; i++)
 	{
 		vector<Chromosome>::iterator bestParentIterator = parents.begin();
@@ -355,7 +355,7 @@ void GenAlgo::replaceParents()
 		parents.erase(bestParentIterator);
 	}
 
-	//We take the half best children.
+	//We take the fraction of the best children.
 	for (int i = 1; i <= fractionOfChildren; i++)
 	{
 		vector<Chromosome>::iterator bestChildIterator = children.begin();
